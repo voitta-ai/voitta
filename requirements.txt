@@ -1,0 +1,12 @@
+pyjwt
+fastapi
+requests
+pandas
+jsonpath-ng
+httpx
+dspy
+pydantic
+python-dotenv
+asgiref
+uvicorn
+pytest
