@@ -19,7 +19,7 @@ import textwrap
 from pydantic import BaseModel, Extra
 from typing import Any, Optional
 
-# from lib.rfk_canvas import CanvasDescription
+# from lib.voitta_canvas import CanvasDescription
 
 from dotenv import load_dotenv
 
@@ -39,7 +39,7 @@ def get_http_client(app=None):
     return client
 
 
-class RFKResponse(BaseModel):
+class VoittaResponse(BaseModel):
     status: str
     message: Optional[str] = None
     data: Optional[str] = None
@@ -399,7 +399,7 @@ class VoittaRouter:
         endpoint_id, function_name = name.split(self.tool_delimiter)
         endpoint_id = int(endpoint_id)
 
-        # print (f"RFKRouter call_function: {token}")
+        # print (f"VoittaRouter call_function: {token}")
 
         # print (f"----- call_function {name} -----")
         # for argument in arguments:
@@ -414,7 +414,7 @@ class VoittaRouter:
                         new_value = await self.reference_provider.call_function("retrieve_value_api_retrieve_value_post",
                                                                                 {"key": arguments[argument]}, token, oauth_token)
 
-                        # just pass the value along, not the entire RFKResponse object
+                        # just pass the value along, not the entire VoittaResponse object
                         print(
                             "---------------------------------a--------------------------------")
                         print(
@@ -451,7 +451,7 @@ class VoittaRouter:
                             new_value = await self.reference_provider.call_function("retrieve_value_api_retrieve_value_post",
                                                                                     {"key": arguments[argument]}, token, oauth_token)
 
-                            # just pass the value along, not the entire RFKResponse object
+                            # just pass the value along, not the entire VoittaResponse object
                             print(
                                 "--------------------------------b---------------------------------")
                             print(
@@ -502,6 +502,6 @@ class VoittaRouter:
         return result
 
 
-# rfkRouter = RFKRouter(["https://agnitio-assets-be.owlsdont.com"])
-# tools = rfkRouter.get_tools()
-# tool_prompt = rfkRouter.get_prompt()
+# voittaRouter = VoittaRouter(["https://agnitio-assets-be.owlsdont.com"])
+# tools = voittaRouter.get_tools()
+# tool_prompt = voittaRouter.get_prompt()

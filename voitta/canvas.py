@@ -17,17 +17,17 @@ At all costs avoid sending same content to canvas and to the chat context. """
             print(f"------ {name} ------ ")
             print(cl)
         if name == "send_canvas_delta":
-            await cl.send_window_message({"target": "rfk_canvas", "name": "send_canvas_delta", "arguments": arguments})
+            await cl.send_window_message({"target": "voitta_canvas", "name": "send_canvas_delta", "arguments": arguments})
         elif name == "set_debug":
-            await cl.send_window_message({"target": "rfk_canvas", "name": "set_debug", "arguments": arguments})
+            await cl.send_window_message({"target": "voitta_canvas", "name": "set_debug", "arguments": arguments})
         elif name == "send_COT_delta":
             await cl.send_window_message({"target": "cot_canvas", "name": "send_COT_delta", "arguments": arguments})
         elif name == "set_canvas":
-            await cl.send_window_message({"target": "rfk_canvas", "name": "set_canvas", "arguments": arguments})
+            await cl.send_window_message({"target": "voitta_canvas", "name": "set_canvas", "arguments": arguments})
             return json.dumps({"status": "ok"})
         elif name == "get_canvas":
             call_id = str(uuid.uuid4())
-            result = await cl.send_window_message({"target": "rfk_canvas",
+            result = await cl.send_window_message({"target": "voitta_canvas",
                                                    "name": "get_canvas",
                                                    "call_id": call_id})
             self.events[call_id] = asyncio.Event()
