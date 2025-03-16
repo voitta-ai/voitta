@@ -1,41 +1,33 @@
 from setuptools import setup, find_packages
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
-
 setup(
-    name="voitta",
-    version="0.1.0",
-    author="Gregory Demin",
-    author_email="debedb@gmail.com",
-    description="A Python library for routing API calls to different endpoints",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/debedb/voitta",
+    name='voitta',
+    version='0.0.1.7',
     packages=find_packages(),
+    author='Voitta',
+    author_email='support@voitta.ai',
+    description='LLM tool calls routing and automation',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+    url='https://voitta.ai',
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
     ],
-    python_requires=">=3.8",
     install_requires=[
-        "fastapi",
-        "pydantic",
-        "httpx",
-        "PyJWT",
-        "pandas",
-        "requests",
-        "python-dotenv",
-        "dspy-ai",
-        "jsonpath-ng",
+        'jwt',
         "pyyaml",
+        "fastapi",
+        "jsonpath_ng",
+        "httpx",
+        "dspy",
+        "pydantic",
+        "typing",
+        "dotenv",
         "asgiref",
-    ],
+
+        "uuid"
+        
+    ]
 )

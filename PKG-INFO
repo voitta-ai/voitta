@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: voitta
+Version: 0.0.1.7
+Summary: LLM tool calls routing and automation
+Home-page: https://voitta.ai
+Author: Voitta
+Author-email: support@voitta.ai
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: jwt
+Requires-Dist: pyyaml
+Requires-Dist: fastapi
+Requires-Dist: jsonpath_ng
+Requires-Dist: httpx
+Requires-Dist: dspy
+Requires-Dist: pydantic
+Requires-Dist: typing
+Requires-Dist: dotenv
+Requires-Dist: asgiref
+Requires-Dist: uuid
