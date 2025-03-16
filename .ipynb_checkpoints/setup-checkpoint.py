@@ -1,12 +1,8 @@
 from setuptools import setup, find_packages
-import re
-
-# Use a simpler version scheme
-VERSION = '1.0.1'
 
 setup(
     name='voitta',
-    version=VERSION,
+    version='0.0.1.8',
     packages=find_packages(),
     author='Voitta',
     author_email='support@voitta.ai',

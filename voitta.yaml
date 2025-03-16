@@ -1,0 +1,11 @@
+# Example configuration for Voitta
+# This file defines the endpoints that Voitta will connect to
+
+# Example API endpoint
+example_api:
+  url: ${EXAMPLE_API_URL}
+  description: "Example API for demonstration purposes"
+
+# Canvas endpoint (required for canvas functionality)
+canvas:
+  url: "canvas"

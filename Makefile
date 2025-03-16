@@ -1,41 +1,34 @@
-.PHONY: clean build test publish publish-test
+.PHONY: clean build publish test bump-patch bump-minor bump-major install
+
+VERSION_FILE := setup.py
+CURRENT_VERSION := $(shell grep -o "VERSION = '[^']*'" $(VERSION_FILE) | sed "s/VERSION = '\(.*\)'/\1/")
 
 clean:
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info/
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
-
-test:
-	pytest tests/
+	rm -rf build/ dist/ *.egg-info/ __pycache__/ voitta/__pycache__/
 
 build: clean
 	python setup.py sdist bdist_wheel
 
-publish-test: build
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-publish: build
+publish: build bump-version
 	twine upload dist/*
 
-version:
-	@echo "Current version: $$(python setup.py --version)"
+test:
+	pytest
 
-bump-version:
-	@if [ "$(version)" = "" ]; then \
-		echo "Usage: make bump-version version=X.Y.Z"; \
-		exit 1; \
-	fi
-	sed -i '' "s/version=\".*\"/version=\"$(version)\"/" setup.py
-	git add setup.py
-	git commit -m "Bump version to $(version)"
-	git tag -a v$(version) -m "Version $(version)"
-	git push origin master
-	git push origin v$(version)
+install: clean
+	pip install -e .
 
-install-dev:
-	pip install -e ".[dev]"
 
-install-deploy:
-	pip install twine wheel setuptools --upgrade 
+bump-minor:
+	@echo "Current version: $(CURRENT_VERSION)"
+	@NEW_VERSION=$$(python -c "import re; \
+		version='$(CURRENT_VERSION)'; \
+		parts=version.split('.'); \
+		parts[1]=str(int(parts[1])+1); \
+		parts[2]='0'; \
+		print('.'.join(parts))") && \
+	sed -i.bak "s/VERSION = '$(CURRENT_VERSION)'/VERSION = '$$NEW_VERSION'/" $(VERSION_FILE) && \
+	rm -f $(VERSION_FILE).bak && \
+	echo "Bumped version to: $$NEW_VERSION"
+
+bump-version: bump-minor
