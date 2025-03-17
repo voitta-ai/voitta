@@ -20,6 +20,7 @@ pip install voitta
 For detailed usage examples, please refer to:
 - [Voitta Example Repository](https://github.com/voitta-ai/voitta-example)
 - [Voitta Official Website](https://voitta.com)
+- [Voitta on PyPI](https://pypi.org/project/voitta/)
 
 ## License
 
