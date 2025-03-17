@@ -59,7 +59,7 @@ publish-test: check-git-status check-master-branch bump-revision build
 		git push origin master && \
 		git push origin v$$CURRENT_VERSION; \
 	fi && \
-	twine upload --repository testpypi dist/* && \
+	twine upload --verbose --repository testpypi dist/* && \
 	echo "Published version $$CURRENT_VERSION to TestPyPI and created git tag v$$CURRENT_VERSION"
 
 # Publish to PyPI - bumps minor version
