@@ -15,28 +15,11 @@ build: clean ensure-deps
 
 # Bump the patch/revision version (0.2.0 -> 0.2.1)
 bump-revision:
-	@echo "Current version: $(CURRENT_VERSION)"
-	@python -c "import re; \
-		version='$(CURRENT_VERSION)'; \
-		parts=version.split('.'); \
-		parts[2]=str(int(parts[2])+1); \
-		new_version='.'.join(parts); \
-		print(f'Bumping revision to: {new_version}'); \
-		with open('$(VERSION_FILE)', 'r') as f: content = f.read(); \
-		with open('$(VERSION_FILE)', 'w') as f: f.write(re.sub(r\"VERSION = '[^']*'\", f\"VERSION = '{new_version}'\", content))"
+	@./scripts/bump_version.py $(VERSION_FILE) --part=revision
 
 # Bump the minor version and reset patch (0.2.1 -> 0.3.0)
 bump-minor:
-	@echo "Current version: $(CURRENT_VERSION)"
-	@python -c "import re; \
-		version='$(CURRENT_VERSION)'; \
-		parts=version.split('.'); \
-		parts[1]=str(int(parts[1])+1); \
-		parts[2]='0'; \
-		new_version='.'.join(parts); \
-		print(f'Bumping minor version to: {new_version}'); \
-		with open('$(VERSION_FILE)', 'r') as f: content = f.read(); \
-		with open('$(VERSION_FILE)', 'w') as f: f.write(re.sub(r\"VERSION = '[^']*'\", f\"VERSION = '{new_version}'\", content))"
+	@./scripts/bump_version.py $(VERSION_FILE) --part=minor
 
 # Check if there are uncommitted changes
 check-git-status:
