@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/github/license/voitta-ai/voitta)](https://github.com/voitta-ai/voitta/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/voitta-ai/voitta.svg)](https://github.com/voitta-ai/voitta/stargazers)
 
+<!-- These badges will appear on both GitHub and PyPI pages since this README is used as the long description for PyPI -->
+
 LLM tool calls routing and automation.
 
 ## Installation

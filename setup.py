@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 import re
 
-# Use a simpler version scheme
-VERSION = '1.0.1'
+# Version scheme based on existing PyPI versions
+# Last version on PyPI is 0.0.1.8, so we'll increment from there
+VERSION = '0.0.1.9'
 
 setup(
     name='voitta',
