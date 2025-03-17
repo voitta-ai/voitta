@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     author='Voitta',
     author_email='support@voitta.ai',
-    description='LLM tool calls routing and automation',
+    description='A Python framework for LLM tool calls routing, automation, and orchestration',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/voitta-ai/voitta',
@@ -20,6 +20,8 @@ setup(
         'Examples': 'https://github.com/voitta-ai/voitta-example',
         'Bug Reports': 'https://github.com/voitta-ai/voitta/issues',
         'Source Code': 'https://github.com/voitta-ai/voitta',
+        'Website': 'https://voitta.ai',
+        'Changelog': 'https://github.com/voitta-ai/voitta/blob/master/CHANGELOG.md',
     },
     classifiers=[
         'Programming Language :: Python :: 3',
