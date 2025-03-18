@@ -30,7 +30,6 @@ import traceback
 
 load_dotenv()
 
-
 jsonpath_expr = parse("$..['$ref']")
 
 
