@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 
 from asgiref.sync import async_to_sync
 
+import traceback
 
 load_dotenv()
 
@@ -90,17 +91,20 @@ class EndpointDescription:
             for method in path_data:
                 if "CPM" in path_data[method] or "x-CPM" in path_data[method]:
                     if "requestBody" not in path_data[method]:
+                        rb = False
                         if "parameters" in path_data[method]:
                             schema = path_data[method]["parameters"]
                         else:
                             schema = None
                     else:
+                        rb = True
                         requestBody = path_data[method]["requestBody"]
                         matches = jsonpath_expr.find(requestBody)
                         value = matches[0].value
                         schema_name = value.split("/")[-1]
                         schema = self.openapi["components"]["schemas"][schema_name]
-    
+
+                    
                     tool = ToolDescriptor(
                         path=path,
                         operationId = path_data[method]["operationId"],
@@ -110,13 +114,14 @@ class EndpointDescription:
                         schema = schema
                     )
 
-                    
+                                        
                     self.operationIds[path_data[method]["operationId"]] = len(self.tools)
                     self.tools.append(tool)
                     
                     matches = jsonpath_expr.find( path_data[method] )
                 
     async def call_function(self, name, arguments, token, oauth_token):
+        print (f"call_function: {name} ::: {self.operationIds} ::: {arguments}")
         if name not in self.operationIds:
             raise ValueError(f"Name {name} not found")
             
@@ -136,7 +141,7 @@ class EndpointDescription:
                     return response.text
             else:
                 encoded_arguments = {
-                    key: urllib.parse.quote(value, safe='')
+                    key: urllib.parse.quote(value, safe='') if type(value) == str else value
                     for key, value in arguments.items()
                 }
                 formatted_path = tool.path.format(**encoded_arguments)
@@ -158,9 +163,24 @@ class EndpointDescription:
                 files = { }
 
                 asset_name = arguments.get("asset_name", "unknown")
+
+                print (f"call function/tool.schema: {tool.schema}")
+
                 
+                # romaroma
                 for argument in arguments:
-                    arg_descriptor = tool.schema["properties"][argument]
+                    print (f"--------- {argument} -------")
+                    if type(tool.schema) == dict:
+                        arg_descriptor = tool.schema["properties"][argument]
+                    else:
+                        print ("------------------------------------------------------")
+                        print (tool.schema)
+                        for arg in tool.schema:
+                            print (arg)
+                            if arg["name"] == argument:
+                                arg_descriptor = arg
+                                break
+                            
                     if "format" in arg_descriptor and arg_descriptor["format"] == "binary":
                         file_obj = io.BytesIO(arguments[argument].encode("utf8"))
                         files[argument] = (asset_name, file_obj, "text/plain")
@@ -181,6 +201,7 @@ class EndpointDescription:
     def get_tools(self, prefix, delimiter):
         result = []
         for tool in self.tools:
+            print (f"---> schema: {tool.schema}")
             required = []
             properties = {}
             if tool.schema is None:
@@ -204,18 +225,35 @@ class EndpointDescription:
             elif type(tool.schema) == list:
                 missing_description = False
                 for arg in tool.schema:
+
+                    print (f"------> arg: {arg}")
+                    
                     if "description" not in arg:
                         missing_description = True
+
+                    # romaroma
+                    print (f'--- roma: {arg["schema"]}')
+                    if "anyOf" in arg["schema"]:
+                        types = [a["type"] for a in arg["schema"]["anyOf"]]
+                        tp =  types[0]
+                    else:
+                        tp = arg["schema"]["type"]
+
+                        
                     properties[arg["name"]] = {
-                        "type": arg["schema"]["type"],
+                        "type": tp,
                         "description": arg.get("description", "--- NO DESCRIPTION PROVIDED ---")
                     }
                     if arg["required"]:
                         required.append(arg["name"])
-                if missing_description:
-                    print (f"--- Description was missing for {arg['name']} in {self.name}")
+
+                    if missing_description:
+                        print (f"--- Description was missing for {arg['name']} in {self.name}")
             else:
                 print (f"strange schema type: {type(type(tool.schema))}")
+
+
+            print (f"get_tools: {tool.operationId} -> {properties}")
             
             result.append({
                 "type": "function",
@@ -265,9 +303,9 @@ class VoittaRouter:
                     self.endpoints.append ( endpoint )
                     self.endpoint_directory [ name ] = endpoint
                 except Exception as e:
-                    print ("==================  ERROR  =======================")
+                    print (f"==================  ERROR CREATING ENDPOINT {name}  =======================")
                     print (e)
-                    print (f"can not create endpoint: {name}")
+                    traceback.print_exc()
                     continue
                     
                 
