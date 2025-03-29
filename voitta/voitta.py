@@ -1,6 +1,7 @@
 import jwt
 import datetime
 import os
+import sys
 import io
 import yaml
 from fastapi.testclient import TestClient
@@ -13,6 +14,8 @@ import urllib.parse
 import re
 import time
 
+
+
 from .voitta_canvas import CanvasDescription
 from .voitta_mcp import MCPServerDescription
 
@@ -21,6 +24,7 @@ import textwrap
 
 from pydantic import BaseModel, Extra
 from typing import Any, Optional, Dict, List
+
 
 from dotenv import load_dotenv
 
@@ -31,6 +35,9 @@ import traceback
 load_dotenv()
 
 jsonpath_expr = parse("$..['$ref']")
+
+def voitta_log(message):
+    return
 
 
 def get_http_client(app=None):
@@ -124,7 +131,7 @@ class EndpointDescription:
                     matches = jsonpath_expr.find(path_data[method])
 
     async def call_function(self, name, arguments, token, oauth_token):
-        print(f"call_function: {name} ::: {self.operationIds} ::: {arguments}")
+        voitta_log(f"call_function: {name} ::: {self.operationIds} ::: {arguments}")
         if name not in self.operationIds:
             raise ValueError(f"Name {name} not found")
 
@@ -168,18 +175,18 @@ class EndpointDescription:
 
                 asset_name = arguments.get("asset_name", "unknown")
 
-                print(f"call function/tool.schema: {tool.schema}")
+                voitta_log(f"call function/tool.schema: {tool.schema}")
 
                 for argument in arguments:
-                    print(f"--------- {argument} -------")
+                    voitta_log(f"--------- {argument} -------")
                     if type(tool.schema) == dict:
                         arg_descriptor = tool.schema["properties"][argument]
                     else:
-                        print(
+                        voitta_log(
                             "------------------------------------------------------")
-                        print(tool.schema)
+                        voitta_log(tool.schema)
                         for arg in tool.schema:
-                            print(arg)
+                            voitta_log(arg)
                             if arg["name"] == argument:
                                 arg_descriptor = arg
                                 break
@@ -205,7 +212,7 @@ class EndpointDescription:
     def get_tools(self, prefix, delimiter):
         result = []
         for tool in self.tools:
-            print(f"---> schema: {tool.schema}")
+            voitta_log(f"---> schema: {tool.schema}")
             required = []
             properties = {}
             if tool.schema is None:
@@ -231,13 +238,13 @@ class EndpointDescription:
                 missing_description = False
                 for arg in tool.schema:
 
-                    print(f"------> arg: {arg}")
+                    voitta_log(f"------> arg: {arg}")
 
                     if "description" not in arg:
                         missing_description = True
 
                     # romaroma
-                    print(f'--- roma: {arg["schema"]}')
+                    voitta_log(f'--- roma: {arg["schema"]}')
                     if "anyOf" in arg["schema"]:
                         types = [a["type"] for a in arg["schema"]["anyOf"]]
                         tp = types[0]
@@ -252,12 +259,12 @@ class EndpointDescription:
                         required.append(arg["name"])
 
                     if missing_description:
-                        print(
+                        voitta_log(
                             f"--- Description was missing for {arg['name']} in {self.name}")
             else:
-                print(f"strange schema type: {type(type(tool.schema))}")
+                voitta_log(f"strange schema type: {type(type(tool.schema))}")
 
-            print(f"get_tools: {tool.operationId} -> {properties}")
+            voitta_log(f"get_tools: {tool.operationId} -> {properties}")
 
             result.append({
                 "type": "function",
@@ -307,7 +314,7 @@ class VoittaRouter:
             config_path = mcp_config.get("path")
             if config_path:
                 self.mcp = MCPServerDescription(config_path, config_type)
-                print(f"MCP initialized with config type: {config_type}")
+                voitta_log(f"MCP initialized with config type: {config_type}")
                 # Note: We don't await discover_all_tools here because __init__ can't be async
                 # The tools will be discovered when get_tools or get_prompt is called
 
@@ -324,9 +331,9 @@ class VoittaRouter:
                     self.endpoints.append(endpoint)
                     self.endpoint_directory[name] = endpoint
                 except Exception as e:
-                    print(
+                    voitta_log(
                         f"==================  ERROR CREATING ENDPOINT {name}  =======================")
-                    print(e)
+                    voitta_log(e)
                     traceback.print_exc()
                     continue
 
@@ -339,9 +346,9 @@ class VoittaRouter:
         }
 
         for j, endpoint in enumerate(self.endpoints + ([self.canvas] if self.canvas else [])):
-            print(f" ===== DSP NAME: {endpoint.name} ==========")
+            voitta_log(f" ===== DSP NAME: {endpoint.name} ==========")
             if endpoint.name in ["asset_manager", "google_agent"]:
-                print("\t skipping auth endpoints for now")
+                voitta_log("\t skipping auth endpoints for now")
                 continue
             if endpoint == self.canvas:
                 tools = endpoint.get_tools(str(0), self.tool_delimiter)
@@ -404,7 +411,7 @@ class VoittaRouter:
 \tthread.join()
 
 \tif exception:
-\t\tprint("***An exception occurred***:", exception)
+\t\t#voitta_log("***An exception occurred***:", exception)
 \t\traise exception
 
 \treturn result
@@ -417,17 +424,17 @@ class VoittaRouter:
 
                 self.dspy_tools.append(the_function)
 
-        print(f"{len(self.endpoints)} endpoint(s) created")
+        voitta_log(f"{len(self.endpoints)} endpoint(s) created")
 
     async def discover_mcp_tools(self):
         """Discover tools from MCP servers if MCP is initialized"""
         if self.mcp is not None:
             try:
-                print("Starting MCP tool discovery...")
+                voitta_log("Starting MCP tool discovery...")
                 await self.mcp.discover_all_tools()
-                print("MCP tool discovery completed")
+                voitta_log("MCP tool discovery completed")
             except Exception as e:
-                print(f"Error during MCP tool discovery: {e}")
+                voitta_log(f"Error during MCP tool discovery: {e}")
 
     async def get_tools_async(self):
         """Async version of get_tools that ensures MCP tools are discovered first"""
@@ -569,9 +576,9 @@ class VoittaRouter:
                     try:
                         result = json.loads(result)["data"]
                     except:
-                        print(">>>> ERROR JSONING RESULT >>>>>")
-                        print(type(result))
-                        # print (result)
+                        voitta_log(">>>> ERROR JSONING RESULT >>>>>")
+                        voitta_log(type(result))
+                        # voitta_log (result)
                         pass
 
                     # store the result to the tool call database

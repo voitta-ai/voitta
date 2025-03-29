@@ -11,6 +11,8 @@ from typing import Dict, List, Any, Optional, Tuple
 import tempfile
 import uuid
 
+def voitta_log(message):
+    return
 
 class MCPProcess:
     """
@@ -43,7 +45,7 @@ class MCPProcess:
             full_env = os.environ.copy()
             full_env.update(self.env)
 
-            print(f"Starting MCP process: {' '.join(full_command)}")
+            voitta_log(f"Starting MCP process: {' '.join(full_command)}")
 
             # Start the server process
             self.process = await asyncio.create_subprocess_exec(
@@ -54,7 +56,7 @@ class MCPProcess:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            print(f"MCP process started with PID: {self.process.pid}")
+            voitta_log(f"MCP process started with PID: {self.process.pid}")
 
             # Start background tasks to read stdout and stderr
             if self._stdout_task is None or self._stdout_task.done():
@@ -80,7 +82,7 @@ class MCPProcess:
         if not self.is_running():
             return
 
-        print(f"Stopping MCP process with PID: {self.process.pid}")
+        voitta_log(f"Stopping MCP process with PID: {self.process.pid}")
 
         try:
             # Try to terminate gracefully first
@@ -90,11 +92,11 @@ class MCPProcess:
             try:
                 await asyncio.wait_for(self.process.wait(), timeout=5)
             except asyncio.TimeoutError:
-                print("Process didn't terminate gracefully, killing it")
+                voitta_log("Process didn't terminate gracefully, killing it")
                 self.process.kill()
                 await self.process.wait()
         except Exception as e:
-            print(f"Error stopping process: {e}")
+            voitta_log(f"Error stopping process: {e}")
 
         # Cancel background tasks
         if self._stdout_task and not self._stdout_task.done():
@@ -122,7 +124,7 @@ class MCPProcess:
                 line = await self.process.stdout.readline()
                 if not line:
                     if self.is_running():
-                        print(
+                        voitta_log(
                             "Stdout closed unexpectedly while process is still running")
                     break
 
@@ -131,18 +133,18 @@ class MCPProcess:
                     continue
 
                 try:
-                    print(f"Received from MCP: {line_str}")
+                    voitta_log(f"Received from MCP: {line_str}")
                     response = json.loads(line_str)
 
                     # Validate that this is a proper JSON-RPC 2.0 response
                     if "jsonrpc" not in response or response["jsonrpc"] != "2.0":
-                        print(
+                        voitta_log(
                             f"Warning: Response missing or invalid jsonrpc version: {response}")
 
                     # Get the request ID from the response
                     request_id = response.get("id")
                     if request_id is None:
-                        print(f"Warning: Response missing ID: {response}")
+                        voitta_log(f"Warning: Response missing ID: {response}")
                         continue
 
                     if request_id in self.pending_requests:
@@ -151,17 +153,17 @@ class MCPProcess:
                             future.set_result(response)
                         del self.pending_requests[request_id]
                     else:
-                        print(
+                        voitta_log(
                             f"Received response for unknown request ID: {request_id}")
                 except json.JSONDecodeError:
-                    print(f"Failed to parse MCP response: {line_str}")
+                    voitta_log(f"Failed to parse MCP response: {line_str}")
                 except Exception as e:
-                    print(f"Error processing MCP response: {e}")
+                    voitta_log(f"Error processing MCP response: {e}")
         except asyncio.CancelledError:
-            print("Stdout reader task cancelled")
+            voitta_log("Stdout reader task cancelled")
             raise
         except Exception as e:
-            print(f"Unexpected error in stdout reader: {e}")
+            voitta_log(f"Unexpected error in stdout reader: {e}")
 
     async def _read_stderr(self):
         """Read from stderr and log errors."""
@@ -170,18 +172,18 @@ class MCPProcess:
                 line = await self.process.stderr.readline()
                 if not line:
                     if self.is_running():
-                        print(
+                        voitta_log(
                             "Stderr closed unexpectedly while process is still running")
                     break
 
                 line_str = line.decode('utf-8').strip()
                 if line_str:
-                    print(f"MCP stderr: {line_str}")
+                    voitta_log(f"MCP stderr: {line_str}")
         except asyncio.CancelledError:
-            print("Stderr reader task cancelled")
+            voitta_log("Stderr reader task cancelled")
             raise
         except Exception as e:
-            print(f"Unexpected error in stderr reader: {e}")
+            voitta_log(f"Unexpected error in stderr reader: {e}")
 
     async def send_request(self, method, params=None):
         """Send a request to the MCP server and wait for a response."""
@@ -190,7 +192,7 @@ class MCPProcess:
 
             # Double-check that the process started successfully
             if not self.is_running():
-                print("Failed to start MCP process")
+                voitta_log("Failed to start MCP process")
                 return None
 
         request_id = str(self.request_id_counter)
@@ -209,20 +211,20 @@ class MCPProcess:
 
         # Send the request
         request_json = json.dumps(request) + "\n"
-        print(f"Sending request to MCP: {request_json.strip()}")
+        voitta_log(f"Sending request to MCP: {request_json.strip()}")
 
         try:
             self.process.stdin.write(request_json.encode('utf-8'))
             await self.process.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
-            print(f"Pipe error when sending request: {e}")
+            voitta_log(f"Pipe error when sending request: {e}")
             del self.pending_requests[request_id]
             # Try to restart the process
             await self.stop()
             await self.start()
             return None
         except Exception as e:
-            print(f"Error sending request: {e}")
+            voitta_log(f"Error sending request: {e}")
             del self.pending_requests[request_id]
             return None
 
@@ -234,7 +236,7 @@ class MCPProcess:
             # Proper JSON-RPC 2.0 response handling
             if "error" in response:
                 error = response["error"]
-                print(
+                voitta_log(
                     f"MCP server error: code={error.get('code')}, message={error.get('message')}")
                 return None
 
@@ -242,17 +244,17 @@ class MCPProcess:
             if "result" in response:
                 return response["result"]
             else:
-                print(
+                voitta_log(
                     f"Invalid JSON-RPC response: missing 'result' field: {response}")
                 return None
         except asyncio.TimeoutError:
             del self.pending_requests[request_id]
-            print(f"Timeout waiting for MCP server response to {method}")
+            voitta_log(f"Timeout waiting for MCP server response to {method}")
 
             # Track consecutive timeouts
             self.consecutive_timeouts += 1
             if self.consecutive_timeouts > 3:
-                print("Too many consecutive timeouts, restarting process")
+                voitta_log("Too many consecutive timeouts, restarting process")
                 await self.stop()
                 await asyncio.sleep(1)
                 await self.start()
@@ -260,7 +262,7 @@ class MCPProcess:
 
             return None
         except Exception as e:
-            print(f"Error waiting for response: {e}")
+            voitta_log(f"Error waiting for response: {e}")
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
             return None
@@ -268,7 +270,7 @@ class MCPProcess:
     async def check_health(self):
         """Check if the process is healthy."""
         if not self.is_running():
-            print("Process not running during health check")
+            voitta_log("Process not running during health check")
             return False
 
         # For now, just check if the process is running
@@ -329,7 +331,7 @@ class MCPServerDescription:
         This method attempts to start the MCP server (if not already running)
         and query it for its available tools.
         """
-        print(f"Discovering tools for MCP server: {server_name}")
+        voitta_log(f"Discovering tools for MCP server: {server_name}")
 
         # Start the server process if it's not already running
         if server_name not in self.server_processes:
@@ -345,13 +347,13 @@ class MCPServerDescription:
         # Get the server process
         process = self.server_processes.get(server_name)
         if not process or not process.is_running():
-            print(f"Failed to start MCP server: {server_name}")
+            voitta_log(f"Failed to start MCP server: {server_name}")
             return
 
         # Check process health before sending important requests
         is_healthy = await process.check_health()
         if not is_healthy:
-            print(f"MCP server {server_name} failed health check, restarting")
+            voitta_log(f"MCP server {server_name} failed health check, restarting")
             await process.stop()
             await asyncio.sleep(1)
             await process.start()
@@ -359,20 +361,20 @@ class MCPServerDescription:
             # Check again after restart
             is_healthy = await process.check_health()
             if not is_healthy:
-                print(
+                voitta_log(
                     f"MCP server {server_name} still unhealthy after restart, skipping")
                 return
 
         # Query the server for its available tools
-        print(f"Requesting tools from MCP server: {server_name}")
+        voitta_log(f"Requesting tools from MCP server: {server_name}")
 
         # Use the standard MCP method name for listing tools according to the specification
-        print(
+        voitta_log(
             f"For {server_name}, requesting tools using standard MCP method: tools/list")
         tools_result = await process.send_request("tools/list")
 
         if not tools_result:
-            print(
+            voitta_log(
                 f"No tools result from MCP server: {server_name} after trying multiple methods")
             return
 
@@ -407,7 +409,7 @@ class MCPServerDescription:
                 parameters=parameters,
                 required=required
             )
-        print(f"Found {len(self.tools)} tools")
+        voitta_log(f"Found {len(self.tools)} tools")
 
     def _add_tool(self, server_name, tool_name, description, parameters, required=None):
         """Helper method to add a tool to the tools list"""
@@ -513,7 +515,7 @@ class MCPServerDescription:
                         tool['name'].encode()).hexdigest()[:8]
                     full_name = f"{prefix}{delimiter}tool_{name_hash}"
 
-                print(f"Shortened tool name: {tool['name']} -> {full_name}")
+                voitta_log(f"Shortened tool name: {tool['name']} -> {full_name}")
 
             # Final sanitization to ensure the function name only contains allowed characters
             import re

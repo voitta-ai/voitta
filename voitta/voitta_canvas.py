@@ -5,6 +5,8 @@ import sys
 
 #import chainlit as cl
 
+def voitta_log(message):
+    return
 
 class CanvasDescription:
     def __init__(self):
@@ -17,8 +19,8 @@ At all costs avoid sending same content to canvas and to the chat context. """
 
     async def call_function(self, name, arguments, cl, oauth_token):
         if name == "set_canvas":
-            print (f"------ {name} ------ ")
-            print (cl)
+            voitta_log (f"------ {name} ------ ")
+            voitta_log (cl)
         if name == "send_canvas_delta":
             await cl.send_window_message({"target":"rfk_canvas", "name": "send_canvas_delta", "arguments": arguments})
         elif name == "set_debug":
