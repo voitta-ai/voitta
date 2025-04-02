@@ -341,6 +341,7 @@ class VoittaRouter:
                 self.reference_provider = endpoint
 
         type_map = {
+            "boolean": "bool",
             "string": "str",
             "integer": "int"
         }
