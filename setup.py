@@ -36,7 +36,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        "dspy",
+        "dspy>=2.6.16",
         "fastapi>=0.95.0",
         "uvicorn>=0.21.1",
         "python-dotenv>=1.0.0",
