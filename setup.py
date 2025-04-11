@@ -3,7 +3,7 @@ import re
 
 # Version scheme based on existing PyPI versions
 # Last version on PyPI is 0.0.1.8, so we'll increment from there
-VERSION = '0.11.0'
+VERSION = '0.12.0'
 
 setup(
     name='voitta',
