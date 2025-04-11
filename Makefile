@@ -8,7 +8,7 @@ clean:
 
 # Ensure required packages are installed
 ensure-deps:
-	pip install -U setuptools wheel twine
+	pip install -U setuptools wheel twine --break-system-packages
 
 build: clean ensure-deps
 	python setup.py sdist bdist_wheel
