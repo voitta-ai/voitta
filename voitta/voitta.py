@@ -74,7 +74,7 @@ class ToolDescriptor:
 
 
 class EndpointDescription:
-    def __init__(self, name, description, url, info):
+    def __init__(self, name, description, url, info, app=None):
         self.info = info
         self.url = url
         self.name = name
@@ -82,7 +82,8 @@ class EndpointDescription:
         self.tools = []
         self.operationIds = {}
         self.prompt = None
-        self.client = get_http_client()
+        self.app = app
+        self.client = get_http_client(app)
         self.openapi = self.client.get(f"{url}/openapi.json").json()
         self.paths = []
 
@@ -284,7 +285,7 @@ class EndpointDescription:
 
 
 class VoittaRouter:
-    def __init__(self, endpoints, tool_delimiter="____", mcp_config=None):
+    def __init__(self, endpoints, tool_delimiter="____", mcp_config=None, app=None):
         self.endpoint_directory = {}
         self.endpoints = []
         self.tool_delimiter = tool_delimiter
@@ -293,6 +294,7 @@ class VoittaRouter:
         self.dspy_tools = []
         self.cl = None
         self.mcp = None
+        self.app = app
 
         if type(endpoints) == str:
             with open(endpoints, "r") as file:
@@ -327,7 +329,7 @@ class VoittaRouter:
                     endpoint = EndpointDescription(
                         name=name,
                         description=info.get("description", url),
-                        url=url, info=info)
+                        url=url, info=info, app=self.app)
                     self.endpoints.append(endpoint)
                     self.endpoint_directory[name] = endpoint
                 except Exception as e:
