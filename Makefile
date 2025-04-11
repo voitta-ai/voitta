@@ -8,10 +8,10 @@ clean:
 
 # Ensure required packages are installed
 ensure-deps:
-	pip install -U setuptools wheel twine --break-system-packages
+	pip3 install -U setuptools wheel twine --break-system-packages
 
 build: clean ensure-deps
-	python setup.py sdist bdist_wheel
+	python3 setup.py sdist bdist_wheel
 
 # Bump the patch/revision version (0.2.0 -> 0.2.1)
 bump-revision:
