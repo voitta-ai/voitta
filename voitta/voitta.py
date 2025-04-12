@@ -13,6 +13,7 @@ import httpx
 import urllib.parse
 import re
 import time
+from urllib.parse import urljoin
 
 
 
@@ -84,14 +85,14 @@ class EndpointDescription:
         self.prompt = None
         self.app = app
         self.client = get_http_client(app)
-        self.openapi = self.client.get(f"{url}/openapi.json").json()
+        self.openapi = self.client.get ( urljoin(url,"openapi.json") ).json()
         self.paths = []
 
         for path in self.openapi["paths"]:
             self.paths.append(path)
             if path == "/__prompt__":
                 self.prompt = self.client.get(
-                    f"{url}/__prompt__").text.strip('"')
+                    urljoin(url, "__prompt__")    ).text.strip('"')
 
                 match = ('{"message":"Result for ivan"}' in self.prompt)
                 if match:
@@ -146,7 +147,8 @@ class EndpointDescription:
             headers = None
 
         if tool.method == "get":
-            url = f"{self.url}{tool.path}"
+            url = urljoin(self.url, tool.path)
+
             if tool.schema is None or len(tool.schema) == 0:
                 async with httpx.AsyncClient() as client:
                     response = await client.get(url, headers=headers)
@@ -159,7 +161,8 @@ class EndpointDescription:
                 }
                 formatted_path = tool.path.format(**encoded_arguments)
 
-                url = self.url + formatted_path
+                url = urljoin(self.url, formatted_path)
+
                 async with httpx.AsyncClient() as client:
                     response = await client.get(url, headers=headers)
                     return response.text
@@ -169,7 +172,7 @@ class EndpointDescription:
                     response = await client.post(url, headers=headers)
                     return response.text
             else:
-                url = f"{self.url}{tool.path}"
+                url = urljoin ( self.url, tool.path )
 
                 data = {}
                 files = {}
@@ -207,7 +210,7 @@ class EndpointDescription:
 
                 return response.text
         else:
-            url = f"{self.url}{tool.path}"
+            url = urljoin(self.url, tool.path)
             return f"Not implemented yet ({tool.method})"
 
     def get_tools(self, prefix, delimiter):
