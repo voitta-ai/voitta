@@ -41,8 +41,8 @@ def voitta_log(message):
     return
 
 
-def get_http_client(app=None, url=""):
-    if app is None or not "localhost" in url:
+def get_http_client(app=None, _type=""):
+    if app is None or _type not in ["web_client"]:
         client = requests
     else:
         client = TestClient(app)
@@ -84,7 +84,7 @@ class EndpointDescription:
         self.operationIds = {}
         self.prompt = None
         self.app = app
-        self.client = get_http_client(app, url)
+        self.client = get_http_client(app, info.get("type", ""))
         self.openapi = self.client.get ( urljoin(url,"openapi.json") ).json()
         self.paths = []
 
