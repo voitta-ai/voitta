@@ -13,8 +13,6 @@ import httpx
 import urllib.parse
 import re
 import time
-from urllib.parse import urljoin
-
 
 
 from .voitta_canvas import CanvasDescription
@@ -25,7 +23,6 @@ import textwrap
 
 from pydantic import BaseModel, Extra
 from typing import Any, Optional, Dict, List
-
 
 from dotenv import load_dotenv
 
@@ -39,6 +36,9 @@ jsonpath_expr = parse("$..['$ref']")
 
 def voitta_log(message):
     return
+
+def urljoin(*parts):
+    return "/".join(part.strip("/") for part in parts)
 
 
 def get_http_client(app=None, _type=""):
