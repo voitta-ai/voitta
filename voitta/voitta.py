@@ -167,6 +167,9 @@ class EndpointDescription:
                     response = await client.get(url, headers=headers)
                     return response.text
         elif tool.method == "post":
+            
+            url = urljoin(self.url, tool.path)
+
             if tool.schema is None or len(tool.schema) == 0:
                 async with httpx.AsyncClient() as client:
                     response = await client.post(url, headers=headers)
