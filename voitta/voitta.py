@@ -65,13 +65,15 @@ class ToolDescriptor:
                  name,
                  description,
                  method,
-                 schema):
+                 schema,
+                 mtx="default"):
         self.operationId = operationId
         self.name = name
         self.description = description
         self.method = method
         self.schema = schema
         self.path = path
+        self.mtx=mtx
 
 
 class EndpointDescription:
@@ -117,13 +119,16 @@ class EndpointDescription:
                         schema_name = value.split("/")[-1]
                         schema = self.openapi["components"]["schemas"][schema_name]
 
+                    mtx = path_data[method].get("x-CPM", "default")
+
                     tool = ToolDescriptor(
                         path=path,
                         operationId=path_data[method]["operationId"],
                         name=path_data[method].get("summary", "No Name"),
                         description=path_data[method]["description"],
                         method=method,
-                        schema=schema
+                        schema=schema,
+                        mtx=mtx
                     )
 
                     self.operationIds[path_data[method]
