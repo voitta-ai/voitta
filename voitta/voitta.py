@@ -43,8 +43,10 @@ def urljoin(*parts):
 
 def get_http_client(app=None, _type=""):
     if app is None or _type not in ["web_client"]:
+        print ("[Voitta] http client is requests")
         client = requests
     else:
+        print ("[Voitta] http client is TestClient")
         client = TestClient(app)
     return client
 
@@ -78,6 +80,7 @@ class ToolDescriptor:
 
 class EndpointDescription:
     def __init__(self, name, description, url, info, app=None):
+        self.timeout = 5
         self.info = info
         self.url = url
         self.name = name
@@ -87,14 +90,14 @@ class EndpointDescription:
         self.prompt = None
         self.app = app
         self.client = get_http_client(app, info.get("type", ""))
-        self.openapi = self.client.get ( urljoin(url,"openapi.json") ).json()
+        self.openapi = self.client.get ( urljoin(url,"openapi.json"), timeout=self.timeout).json()
         self.paths = []
 
         for path in self.openapi["paths"]:
             self.paths.append(path)
             if path == "/__prompt__":
                 self.prompt = self.client.get(
-                    urljoin(url, "__prompt__")    ).text.strip('"')
+                    urljoin(url, "__prompt__"), timeout=self.timeout ).text.strip('"')
 
                 match = ('{"message":"Result for ivan"}' in self.prompt)
                 if match:
