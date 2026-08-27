@@ -70,8 +70,7 @@ print(result)  # Output: {"temperature": 72, "condition": "sunny", "location": "
 ## Usage
 
 For detailed usage examples and documentation, please refer to:
-- [Voitta Example Repository](https://github.com/voitta-ai/voitta-example)
-- [Voitta Official Website](https://voitta.com)
+- [Voitta Official Website](https://voitta.ai)
 - [Voitta on PyPI](https://pypi.org/project/voitta/)
 
 ## Contributing
