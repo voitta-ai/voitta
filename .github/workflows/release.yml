@@ -1,0 +1,74 @@
+# Version gate + tag-and-release, driven by setup.py's VERSION field.
+#
+# 1. PR-side gate: a PR into master that changes shipped files must bump
+#    VERSION past the base branch's value (docs-only PRs are exempt).
+# 2. Push-side tag-and-release: on push to master, if v<VERSION> isn't
+#    tagged yet, tag the pushed commit and create a GitHub Release with
+#    --generate-notes. Idempotent on re-run.
+#
+# This repo has no CI that publishes to PyPI; tags/releases here track what
+# was (or will be) published there, they don't drive the PyPI publish.
+name: release
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - '.github/**'
+      - '**.md'
+
+permissions:
+  contents: read
+
+env:
+  VERSION_FILE: setup.py
+
+jobs:
+  version-bumped:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version must advance
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE"
+          old=$(git show "FETCH_HEAD:$VERSION_FILE" | grep -m1 -E "^VERSION = " | sed -E "s/^VERSION = '([^']+)'/\1/")
+          new=$(grep -m1 -E "^VERSION = " "$VERSION_FILE" | sed -E "s/^VERSION = '([^']+)'/\1/")
+          if [ "$old" = "$new" ]; then
+            echo "::error::$VERSION_FILE VERSION is still $old - bump it."
+            exit 1
+          fi
+          if [ "$(printf '%s\n%s\n' "$old" "$new" | sort -V | head -1)" != "$old" ]; then
+            echo "::error::$new does not advance past $old."
+            exit 1
+          fi
+          echo "$old -> $new"
+
+  tag-and-release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag and release if the version is new
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(grep -m1 -E "^VERSION = " "$VERSION_FILE" | sed -E "s/^VERSION = '([^']+)'/\1/")
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "v$version is already tagged; nothing to release."
+            exit 0
+          fi
+          gh release create "v$version" \
+            --title "v$version" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
